@@ -63,6 +63,8 @@ bool TinyGPS::encode(char c)
 #ifndef _GPS_NO_STATS
   ++_encoded_characters;
 #endif
+// Serial.print("tinyGPS: ");Serial.print(c);Serial.print(" encoded: ");Serial.println(_encoded_characters);
+
   switch(c)
   {
   case ',': // term terminators
@@ -70,6 +72,7 @@ bool TinyGPS::encode(char c)
   case '\r':
   case '\n':
   case '*':
+    // Serial.println("tinyGPS: r, n or * detected");
     if (_term_offset < sizeof(_term))
     {
       _term[_term_offset] = 0;
@@ -77,7 +80,8 @@ bool TinyGPS::encode(char c)
     }
     ++_term_number;
     _term_offset = 0;
-    _is_checksum_term = c == '*';
+    _is_checksum_term = c == '*'; // SUSPECT
+    // Serial.print("tinyGPS: _is_checksum_term ");Serial.println(_is_checksum_term);
     return valid_sentence;
 
   case '$': // sentence begin
@@ -86,6 +90,7 @@ bool TinyGPS::encode(char c)
     _sentence_type = _GPS_SENTENCE_OTHER;
     _is_checksum_term = false;
     _gps_data_good = false;
+    // Serial.println("tinyGPS: $ detected");
     return valid_sentence;
   }
 
@@ -94,6 +99,8 @@ bool TinyGPS::encode(char c)
     _term[_term_offset++] = c;
   if (!_is_checksum_term)
     _parity ^= c;
+
+  // Serial.print("tinyGPS: _term: ");Serial.println(_term);
 
   return valid_sentence;
 }
@@ -163,22 +170,29 @@ unsigned long TinyGPS::parse_degrees()
 // Returns true if new sentence has just passed checksum test and is validated
 bool TinyGPS::term_complete()
 {
+  // Serial.println("tinyGPS.term_complete ");
   if (_is_checksum_term)
   {
     byte checksum = 16 * from_hex(_term[0]) + from_hex(_term[1]);
+    // Serial.print("tinyGPS.term_complete checksum ");Serial.println(checksum);
     if (checksum == _parity)
     {
+      // Serial.println("_parity");
       if (_gps_data_good)
       {
+        // Serial.println("gps_data_good");
 #ifndef _GPS_NO_STATS
         ++_good_sentences;
 #endif
         _last_time_fix = _new_time_fix;
         _last_position_fix = _new_position_fix;
 
+        // Serial.print("last time fix: ");Serial.println(_last_time_fix);
+        // Serial.print("sentence type: ");Serial.println(_sentence_type);
         switch(_sentence_type)
         {
         case _GPS_SENTENCE_GPRMC:
+          Serial.println("GPRMC");
           _time      = _new_time;
           _date      = _new_date;
           _latitude  = _new_latitude;
@@ -187,6 +201,7 @@ bool TinyGPS::term_complete()
           _course    = _new_course;
           break;
         case _GPS_SENTENCE_GPGGA:
+          Serial.println("GPGGA");
           _altitude  = _new_altitude;
           _time      = _new_time;
           _latitude  = _new_latitude;
@@ -196,6 +211,7 @@ bool TinyGPS::term_complete()
           break;
         }
 
+        Serial.print("lat/long: ");Serial.print(_latitude);Serial.print("/");Serial.println(_longitude);
         return true;
       }
     }

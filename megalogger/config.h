@@ -2,8 +2,11 @@
 #define CONFIG_H_INCLUDED
 
 /**************************************
-* OBD-II Adapter options
+* Choose model of OBD-II Adapter
 **************************************/
+// OBD_MODEL_I2C for I2C version
+// OBD_MODEL_UART for UART version
+#define OBD_MODEL OBD_MODEL_I2C
 #define OBD_PROTOCOL PROTO_AUTO
 
 /**************************************
@@ -25,6 +28,7 @@
 // this defines the format of data streaming
 // FORMAT_BIN is required by Freematics OBD iOS App
 #define STREAM_FORMAT FORMAT_BIN
+//#define STREAM_FORMAT TEXT
 
 /* Default streaming baudrates:
    9600bps for BLE
@@ -33,7 +37,7 @@
 #define STREAM_BAUDRATE 9600
 
 // outputs debug information
-#define VERBOSE 0
+#define VERBOSE 1
 
 /**************************************
 * GPS configuration
@@ -44,7 +48,8 @@
 
 // 38400bps for G6010 5Hz GPS receiver
 // 115200bps for G7020 10Hz GPS receiver
-#define GPS_BAUDRATE 38400 /* bps */
+#define GPS_BAUDRATE 115200 /* bps */
+#define GPS_OPEN_BAUDRATE 4800 /* bps */
 
 /**************************************
 * Accelerometer & Gyro
